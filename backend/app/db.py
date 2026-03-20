@@ -35,8 +35,8 @@ def init_db():
     cursor.execute("SELECT count(*) FROM ledger")
     if cursor.fetchone()[0] == 0 and os.path.exists(settings.DATA_PATH):
         df = pd.read_csv(settings.DATA_PATH)
-        # Dynamic discovery of carbon footprint column
-        carbon_col = next((c for c in df.columns if "total_lifecycle_carbon_footprint" in c), 'total_lifecycle_carbon_footprint')
+        # Absolute Reality: Direct Column Mapping
+        carbon_col = 'total_lifecycle_carbon_footprint'
         
         df_seed = df[['Timestamp', 'Product_ID', 'SKU_Name', 'Category', 'Region', 'Vendor', carbon_col, 'Hash', 'Prev_Hash']]
         df_seed.columns = ['timestamp', 'product_id', 'sku_name', 'category', 'region', 'vendor', 'total_lifecycle_carbon_footprint', 'hash', 'prev_hash']
@@ -71,7 +71,7 @@ def add_ledger_record(record_dict):
     """, (
         record_dict['timestamp'], record_dict['product_id'], record_dict['sku_name'],
         record_dict['category'], record_dict['region'], record_dict['vendor'],
-        record_dict.get('total_lifecycle_carbon_footprint', record_dict.get('carbon_footprint')), 
+        record_dict['total_lifecycle_carbon_footprint'], 
         record_dict['hash'], record_dict['prev_hash'],
         record_dict.get('is_anomaly', 0)
     ))

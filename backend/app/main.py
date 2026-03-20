@@ -10,6 +10,9 @@ import uuid
 import time
 import hashlib
 from statsmodels.tsa.holtwinters import SimpleExpSmoothing
+from fastapi.responses import StreamingResponse
+import io
+import traceback
 
 from app.config import settings
 from app.db import init_db, get_db_connection, add_ledger_record, get_latest_hash
@@ -241,9 +244,6 @@ def get_performance_trends():
         "vendor_performance": df['vendor'].value_counts().head(3).to_dict(),
         "yoy_change": -3.42
     }
-
-from fastapi.responses import StreamingResponse
-import io
 
 @app.get("/api/v1/export")
 def export_ledger_data(format: str = "csv"):
