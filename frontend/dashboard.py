@@ -354,7 +354,9 @@ with t4:
     fig_map.update_layout(
         margin={"r":0,"t":40,"l":0,"b":0}, 
         paper_bgcolor='rgba(0,0,0,0)',
-        title=dict(text="Node Impact Distribution", font=dict(size=16, color="#FFFFFF"))
+        title_text="Node Impact Distribution",
+        title_font_size=16,
+        title_font_color="#FFFFFF"
     )
     st.plotly_chart(fig_map, use_container_width=True)
 
