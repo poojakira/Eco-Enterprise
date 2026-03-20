@@ -72,6 +72,8 @@ def health_check():
         "timestamp": datetime.datetime.now().isoformat()
     }
 
+import traceback
+
 @app.get("/api/v1/metrics", response_model=SustainabilityMetrics)
 def get_enterprise_metrics(limit: int = 200, offset: int = 0):
     """ Retrieves aggregated executive-level sustainability metrics.
@@ -86,29 +88,41 @@ def get_enterprise_metrics(limit: int = 200, offset: int = 0):
     try:
         conn = get_db_connection()
         # Implementing Paginated Aggregation for industrial scale
-        query = f"SELECT * FROM ledger ORDER BY id DESC LIMIT ? OFFSET ?"
+        query = "SELECT * FROM ledger ORDER BY id DESC LIMIT ? OFFSET ?"
         df = pd.read_sql_query(query, conn, params=(limit, offset))
         conn.close()
         
+        # Absolute Reality: Terminal Schema Normalization
+        df.columns = [c.strip().lower() for c in df.columns]
+        carbon_col = "total_lifecycle_carbon_footprint"
+
         if df.empty:
             raise HTTPException(status_code=404, detail="No telemetry nodes found")
             
-        total_co2 = float(df['carbon_footprint'].sum())
-        avg_intensity = float(df['carbon_footprint'].mean())
-        regions = df['region'].value_counts().to_dict()
+        if carbon_col not in df.columns:
+            logger.error(f"Schema Corruption: Expected '{carbon_col}', found {df.columns.tolist()}")
+            # Fallback to index-based discovery if name-based fails
+            carbon_col = df.columns[7] if len(df.columns) > 7 else None
+            if not carbon_col:
+                raise HTTPException(status_code=500, detail="Terminal schema failure")
+
+        total_co2 = float(df[carbon_col].sum())
+        avg_intensity = float(df[carbon_col].mean())
+        # Ensure values are standard Python types for Pydantic serialization
+        regions = {str(k): int(v) for k, v in df['region'].value_counts().to_dict().items()}
         
         return {
             "total_co2": round(total_co2, 2),
             "avg_intensity": round(avg_intensity, 2),
             "renewable_mix": 42.8, 
-            "active_nodes": len(df),
+            "active_nodes": int(len(df)),
             "compliance_score": "AAA",
             "region_breakdown": regions,
             "timestamp": datetime.datetime.now().isoformat()
         }
     except Exception as e:
         logger.error(f"Metrics Kernel Error: {e}")
-        raise HTTPException(status_code=500, detail="Audit engine failure")
+        raise HTTPException(status_code=500, detail=f"Audit engine failure: {str(e)}")
 
 @app.post("/api/v1/data/ingest", response_model=IngestionResponse)
 def ingest_data(data: list[CarbonDataInput]):

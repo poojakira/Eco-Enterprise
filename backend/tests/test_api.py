@@ -88,3 +88,9 @@ def test_predict_endpoint():
     data = response.json()
     assert "predicted_carbon_footprint" in data
     assert "confidence_interval" in data
+
+if __name__ == "__main__":
+    test_health_check()
+    test_get_metrics()
+    test_get_forecast()
+    print("✅ Diagnostic Tests Passed (Manual Execution)")
