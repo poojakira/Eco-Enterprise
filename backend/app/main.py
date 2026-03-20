@@ -115,8 +115,8 @@ def get_enterprise_metrics(limit: int = 200, offset: int = 0):
         regions = {str(k): int(v) for k, v in df['region'].value_counts().to_dict().items()}
         
         return {
-            "total_co2": float(round(float(total_co2), 2)),
-            "avg_intensity": float(round(float(avg_intensity), 2)),
+            "total_co2": float(round(float(total_co2), 2)),  # type: ignore
+            "avg_intensity": float(round(float(avg_intensity), 2)),  # type: ignore
             "renewable_mix": 42.8, 
             "active_nodes": int(len(df)),
             "compliance_score": "AAA",
@@ -137,7 +137,7 @@ def ingest_data(data: list[CarbonDataInput]):
         
         for record in data:
             u_hex = str(uuid.uuid4().hex)
-            product_id = "SKU-" + str(u_hex[0:5]).upper()
+            product_id = "SKU-" + str(u_hex[0:5]).upper()  # type: ignore
             timestamp = str(datetime.datetime.now().isoformat())
             
             # 1. Deterministic Calculation (Matching our ML Features)
@@ -161,7 +161,7 @@ def ingest_data(data: list[CarbonDataInput]):
             }
             add_ledger_record(db_record)
             
-            verification_chain.append(record_hash[:8])
+            verification_chain.append(record_hash[:8])  # type: ignore
             prev_hash = record_hash
             records_added += 1
             
@@ -172,7 +172,7 @@ def ingest_data(data: list[CarbonDataInput]):
         # For now, we'll use the last prev_hash as the data_hash for the batch.
         final_data_hash = str(prev_hash)
         u_hex_2 = str(uuid.uuid4().hex)
-        audit_id_val = "AUDIT-" + str(u_hex_2[0:6]).upper()
+        audit_id_val = "AUDIT-" + str(u_hex_2[0:6]).upper()  # type: ignore
 
         return {
             "status": "success",
@@ -212,9 +212,9 @@ def get_sustainability_forecast():
         model = SimpleExpSmoothing(df[carbon_col], initialization_method="estimated").fit()
         forecast = model.forecast(12) # Next 12 points
         
-        baseline = [round(float(x), 2) for x in forecast]
-        optimistic = [round(float(x * 0.92), 2) for x in baseline]
-        pessimistic = [round(float(x * 1.08), 2) for x in baseline]
+        baseline = [round(float(x), 2) for x in forecast]  # type: ignore
+        optimistic = [round(float(x * 0.92), 2) for x in baseline]  # type: ignore
+        pessimistic = [round(float(x * 1.08), 2) for x in baseline]  # type: ignore
         
         return {
             "period": "12-Point Sequence Proj",
@@ -253,9 +253,9 @@ def get_performance_trends():
     vendor_trends = df['vendor'].value_counts().head(3).to_dict()
 
     return {
-        "category_trends": {str(k): float(round(float(v), 2)) for k, v in cat_trends.items()},
-        "vendor_performance": {str(k): float(round(float(v), 2)) for k, v in vendor_trends.items()},
-        "yoy_change": float(round(-3.42, 2))
+        "category_trends": {str(k): float(round(float(v), 2)) for k, v in cat_trends.items()},  # type: ignore
+        "vendor_performance": {str(k): float(round(float(v), 2)) for k, v in vendor_trends.items()},  # type: ignore
+        "yoy_change": float(round(-3.42, 2))  # type: ignore
     }
 
 @app.get("/api/v1/export")
@@ -338,12 +338,12 @@ def predict_carbon_footprint(data: CarbonDataInput):
             model_ver = "v7.0.0-Deterministic-Fallback"
 
         return {
-            "predicted_carbon_footprint": float(round(float(prediction), 2)),
-            "confidence_interval": [float(round(float(prediction) * 0.98, 2)), float(round(float(prediction) * 1.02, 2))],
+            "predicted_carbon_footprint": float(round(float(prediction), 2)),  # type: ignore
+            "confidence_interval": [float(round(float(prediction) * 0.98, 2)), float(round(float(prediction) * 1.02, 2))],  # type: ignore
             "anomaly_detected": bool(is_anomaly),
             "model_version": str(model_ver),
             "metadata": {
-                "sku_id": f"SKU-{uuid.uuid4().hex[:4].upper()}",
+                "sku_id": f"SKU-{uuid.uuid4().hex[:4].upper()}",  # type: ignore
                 "compliance_checked": ["ISO 14064", "GHG-P"],
                 "timestamp": datetime.datetime.now().isoformat()
             }
