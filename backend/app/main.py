@@ -115,8 +115,8 @@ def get_enterprise_metrics(limit: int = 200, offset: int = 0):
         regions = {str(k): int(v) for k, v in df['region'].value_counts().to_dict().items()}
         
         return {
-            "total_co2": round(total_co2, 2),
-            "avg_intensity": round(avg_intensity, 2),
+            "total_co2": float(round(total_co2, 2)),
+            "avg_intensity": float(round(avg_intensity, 2)),
             "renewable_mix": 42.8, 
             "active_nodes": int(len(df)),
             "compliance_score": "AAA",
@@ -136,7 +136,8 @@ def ingest_data(data: list[CarbonDataInput]):
         prev_hash = get_latest_hash()
         
         for record in data:
-            product_id = f"SKU-{uuid.uuid4().hex[:5].upper()}"
+            u_hex = str(uuid.uuid4().hex)
+            product_id = f"SKU-{u_hex[:5].upper()}"
             timestamp = datetime.datetime.now().isoformat()
             
             # 1. Deterministic Calculation (Matching our ML Features)
@@ -164,11 +165,20 @@ def ingest_data(data: list[CarbonDataInput]):
             prev_hash = record_hash
             records_added += 1
             
+        # Security: Chain authentication via SHA-256 block-header
+        # The `payload` variable here would refer to the last record's payload.
+        # If a global data_hash for the entire ingestion batch is needed,
+        # it should be calculated based on the final state or a combined hash.
+        # For now, we'll use the last prev_hash as the data_hash for the batch.
+        final_data_hash = prev_hash
+        u_hex_2 = str(uuid.uuid4().hex)
+        audit_id_val = f"AUDIT-{u_hex_2[:6].upper()}"
+
         return {
             "status": "success",
             "records_added": records_added,
-            "data_hash": prev_hash,
-            "audit_id": f"AUD-{uuid.uuid4().hex[:6].upper()}",
+            "data_hash": final_data_hash,
+            "audit_id": audit_id_val,
             "verification_chain": "->".join(verification_chain)
         }
     except Exception as e:
