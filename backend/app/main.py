@@ -115,8 +115,8 @@ def get_enterprise_metrics(limit: int = 200, offset: int = 0):
         regions = {str(k): int(v) for k, v in df['region'].value_counts().to_dict().items()}
         
         return {
-            "total_co2": float(round(total_co2, 2)),
-            "avg_intensity": float(round(avg_intensity, 2)),
+            "total_co2": float(round(float(total_co2), 2)),
+            "avg_intensity": float(round(float(avg_intensity), 2)),
             "renewable_mix": 42.8, 
             "active_nodes": int(len(df)),
             "compliance_score": "AAA",
@@ -137,8 +137,8 @@ def ingest_data(data: list[CarbonDataInput]):
         
         for record in data:
             u_hex = str(uuid.uuid4().hex)
-            product_id = f"SKU-{u_hex[:5].upper()}"
-            timestamp = datetime.datetime.now().isoformat()
+            product_id = "SKU-" + str(u_hex[0:5]).upper()
+            timestamp = str(datetime.datetime.now().isoformat())
             
             # 1. Deterministic Calculation (Matching our ML Features)
             total_carbon = (record.raw_material_energy * 0.45) + (record.manufacturing_energy * 0.65)
@@ -170,16 +170,16 @@ def ingest_data(data: list[CarbonDataInput]):
         # If a global data_hash for the entire ingestion batch is needed,
         # it should be calculated based on the final state or a combined hash.
         # For now, we'll use the last prev_hash as the data_hash for the batch.
-        final_data_hash = prev_hash
+        final_data_hash = str(prev_hash)
         u_hex_2 = str(uuid.uuid4().hex)
-        audit_id_val = f"AUDIT-{u_hex_2[:6].upper()}"
+        audit_id_val = "AUDIT-" + str(u_hex_2[0:6]).upper()
 
         return {
             "status": "success",
-            "records_added": records_added,
+            "records_added": int(records_added),
             "data_hash": final_data_hash,
             "audit_id": audit_id_val,
-            "verification_chain": "->".join(verification_chain)
+            "verification_chain": str("->".join(verification_chain))
         }
     except Exception as e:
         logger.error(f"Ingestion Kernel Error: {e}")
@@ -249,10 +249,13 @@ def get_performance_trends():
     df = pd.read_sql_query("SELECT category, vendor FROM ledger", conn)
     conn.close()
     
+    cat_trends = df['category'].value_counts().head(3).to_dict()
+    vendor_trends = df['vendor'].value_counts().head(3).to_dict()
+
     return {
-        "category_trends": df['category'].value_counts().head(3).to_dict(),
-        "vendor_performance": df['vendor'].value_counts().head(3).to_dict(),
-        "yoy_change": -3.42
+        "category_trends": {str(k): float(round(float(v), 2)) for k, v in cat_trends.items()},
+        "vendor_performance": {str(k): float(round(float(v), 2)) for k, v in vendor_trends.items()},
+        "yoy_change": float(round(-3.42, 2))
     }
 
 @app.get("/api/v1/export")
@@ -335,10 +338,10 @@ def predict_carbon_footprint(data: CarbonDataInput):
             model_ver = "v7.0.0-Deterministic-Fallback"
 
         return {
-            "predicted_carbon_footprint": round(prediction, 2),
-            "confidence_interval": [round(prediction * 0.98, 2), round(prediction * 1.02, 2)],
-            "anomaly_detected": is_anomaly,
-            "model_version": model_ver,
+            "predicted_carbon_footprint": float(round(float(prediction), 2)),
+            "confidence_interval": [float(round(float(prediction) * 0.98, 2)), float(round(float(prediction) * 1.02, 2))],
+            "anomaly_detected": bool(is_anomaly),
+            "model_version": str(model_ver),
             "metadata": {
                 "sku_id": f"SKU-{uuid.uuid4().hex[:4].upper()}",
                 "compliance_checked": ["ISO 14064", "GHG-P"],
