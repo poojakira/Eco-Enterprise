@@ -33,3 +33,30 @@ class PredictionOutput(BaseModel):
     metadata: dict
 
     model_config = ConfigDict(protected_namespaces=())
+
+class SustainabilityMetrics(BaseModel):
+    total_co2: float
+    avg_intensity: float
+    renewable_mix: float
+    active_nodes: int
+    compliance_score: str
+    region_breakdown: dict
+    timestamp: str
+
+class IngestionResponse(BaseModel):
+    status: str
+    records_added: int
+    data_hash: str
+    audit_id: str
+
+class ForecastOutput(BaseModel):
+    period: str
+    baseline_projection: list[float]
+    optimistic_projection: list[float]
+    pessimistic_projection: list[float]
+    confidence_score: float
+
+class TrendOutput(BaseModel):
+    category_trends: dict
+    vendor_performance: dict
+    yoy_change: float

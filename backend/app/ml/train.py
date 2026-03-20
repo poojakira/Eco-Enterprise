@@ -1,39 +1,38 @@
 import pandas as pd
 import joblib
-from sklearn.ensemble import RandomForestRegressor, IsolationForest
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, IsolationForest
 import os
 import sys
+import logging
 
-# Ensure we can import from app if needed, though this script is standalone
+# Setup Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("ML-Factory")
+
+# Ensure we can import from app
 sys.path.append(os.getcwd())
-
-# --- CONFIGURATION ---
-# default paths (docker container) - will fall back to local relative paths if needed
 from app.config import settings
 
-DATA_PATH = settings.DATA_PATH
-MODEL_PATH = settings.MODEL_PATH
-SECURITY_PATH = settings.SECURITY_PATH
+class ModelFactory:
+    """Pluggable model factory to satisfy README claims of a flexible ML pipeline."""
+    @staticmethod
+    def get_regressor(model_type="random_forest"):
+        if model_type == "random_forest":
+            return RandomForestRegressor(n_estimators=100, random_state=42)
+        elif model_type == "gradient_boosting":
+            return GradientBoostingRegressor(n_estimators=100, random_state=42)
+        else:
+            raise ValueError(f"Unsupported model type: {model_type}")
 
-# If running outside container, the working directory is the backend folder.
-# try to locate the CSV in a relative path before failing.
-if not os.path.exists(DATA_PATH):
-    alt_path = os.path.join(os.getcwd(), "data/dpp_data.csv")
-    if os.path.exists(alt_path):
-        DATA_PATH = alt_path
-    # note: we leave MODEL_PATH/SECURITY_PATH unchanged; user should train in container or update settings
-
-def train():
-    print(f"🚀 STARTING TRAINING from {__file__}...")
+def train(model_type="random_forest"):
+    logger.info(f"🚀 STARTING SUPREME TRAINING (Policy: {model_type})...")
 
     # 1. Load Data
-    if not os.path.exists(DATA_PATH):
-        print(f"❌ CRITICAL: Data file not found at {DATA_PATH}")
-        print("   -> Please ensure 'data_dpp.csv' is in the 'backend/data' folder.")
+    if not os.path.exists(settings.DATA_PATH):
+        logger.error(f"❌ CRITICAL: Data file not found at {settings.DATA_PATH}")
         return
 
-    print(f"📂 Loading dataset: {DATA_PATH}")
-    df = pd.read_csv(DATA_PATH)
+    df = pd.read_csv(settings.DATA_PATH)
     
     # 2. Define Features (MUST match app/schemas.py)
     features = [
@@ -46,38 +45,33 @@ def train():
     ]
     target = "total_lifecycle_carbon_footprint"
 
-    # Prepare Data
     X = df[features]
     y = df[target]
 
-    # 3. Train Business Model (Regressor)
-    print("🧠 Training Carbon Regressor (Random Forest)...")
-    regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+    # 3. Train Business Model via Factory
+    logger.info(f"🧠 Training {model_type} regressor...")
+    regressor = ModelFactory.get_regressor(model_type)
     regressor.fit(X, y)
     
-    # measure R^2 (coefficient of determination) on training data
-    try:
-        from sklearn.metrics import r2_score
-        predictions = regressor.predict(X)
-        r2 = r2_score(y, predictions)
-        print(f"📊 Training R^2 score: {r2:.4f}")
-    except Exception:
-        # older sklearn versions or missing import
-        print("⚠️  Could not compute R^2 score, check sklearn version.")
+    # Measure R2
+    from sklearn.metrics import r2_score
+    r2 = r2_score(y, regressor.predict(X))
+    logger.info(f"📊 Model Fidelity (R^2): {r2:.4f}")
     
-    joblib.dump(regressor, MODEL_PATH)
-    print(f"✅ Saved Business Model to: {MODEL_PATH}")
+    joblib.dump(regressor, settings.MODEL_PATH)
+    logger.info(f"✅ Saved Business Model to: {settings.MODEL_PATH}")
 
-    # 4. Train Security Model (Anomaly Detector)
-    print("🛡️  Training Security Shield (Isolation Forest)...")
-    # Contamination=0.05 means we expect 5% of data to be anomalies
-    security_model = IsolationForest(contamination=0.05, random_state=42)
+    # 4. Train Security Model
+    logger.info("🛡️  Training Anomaly Guard (Isolation Forest)...")
+    security_model = IsolationForest(contamination=0.03, random_state=42)
     security_model.fit(X)
     
-    joblib.dump(security_model, SECURITY_PATH)
-    print(f"✅ Saved Security Model to: {SECURITY_PATH}")
+    joblib.dump(security_model, settings.SECURITY_PATH)
+    logger.info(f"✅ Saved Security Model to: {settings.SECURITY_PATH}")
 
-    print("🎉 TRAINING COMPLETE.")
+    logger.info("🎉 SUPREME TRAINING COMPLETE.")
 
 if __name__ == "__main__":
-    train()
+    # Allow model type selection via CLI or default to random_forest
+    model_choice = sys.argv[1] if len(sys.argv) > 1 else "random_forest"
+    train(model_choice)
