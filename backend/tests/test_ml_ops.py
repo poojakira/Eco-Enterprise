@@ -1,6 +1,6 @@
-import pytest
-import pandas as pd
-from app.ml_ops import DataValidator, DriftDetector
+import pytest # type: ignore
+import pandas as pd # type: ignore
+from app.ml_ops import DataValidator, DriftDetector # type: ignore
 
 def test_data_validation():
     features = ["f1", "f2"]

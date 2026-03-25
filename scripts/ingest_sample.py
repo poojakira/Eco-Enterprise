@@ -1,4 +1,4 @@
-import requests
+import requests # type: ignore
 import json
 import time
 import random
@@ -11,7 +11,7 @@ def generate_sample_batch(size=50):
     batch = []
     for _ in range(size):
         batch.append({
-            "sku_name": f"SKU-{uuid.uuid4().hex[:6].upper()}",
+            "sku_name": f"SKU-{str(uuid.uuid4())[:6].upper()}",
             "product_id": f"PRD-{random.randint(100, 999)}",
             "category": random.choice(["Electronics", "HVAC", "Logistics", "Energy"]),
             "vendor": f"Vendor-{random.choice(['Alpha', 'Beta', 'Gamma'])}",

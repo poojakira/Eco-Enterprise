@@ -1,6 +1,6 @@
-import pytest
-from app.recommender import RecommenderEngine
-from app.schemas import CarbonDataInput
+import pytest # type: ignore
+from app.recommender import RecommenderEngine # type: ignore
+from app.schemas import CarbonDataInput # type: ignore
 
 def test_recommendation_logic():
     engine = RecommenderEngine()

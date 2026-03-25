@@ -18,6 +18,8 @@ python-dotenv
 mlflow
 xgboost
 statsmodels
+requests
+pytest
 pandas
 numpy
 typer
