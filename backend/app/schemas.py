@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict # type: ignore
 from typing import Optional
 
 # INPUT: Data sent TO the API
@@ -66,3 +66,32 @@ class TrendOutput(BaseModel):
     category_trends: dict
     vendor_performance: dict
     yoy_change: float
+
+# --- AUTHENTICATION SCHEMAS ---
+
+class UserBase(BaseModel):
+    username: str
+    email: Optional[str] = None
+    role: str = "viewer" # viewer, editor, admin
+
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
+    id: int
+    is_active: bool = True
+
+    class Config:
+        from_attributes = True
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    role: Optional[str] = None

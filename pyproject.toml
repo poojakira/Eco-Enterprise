@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ecotrack-enterprise"
+version = "8.0.0"
+description = "Industrial-grade Sustainability ERP & ML Telemetry Platform"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "psycopg2-binary",
+    "pandas",
+    "numpy",
+    "xgboost",
+    "statsmodels",
+    "mlflow",
+    "python-jose[cryptography]",
+    "passlib[bcrypt]",
+    "python-dotenv",
+    "typer",
+    "rich"
+]
+
+[project.scripts]
+ecotrack = "backend.cli:app"

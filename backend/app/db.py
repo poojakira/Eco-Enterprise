@@ -1,90 +1,120 @@
-import sqlite3
-import pandas as pd
 import os
+import pandas as pd
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, Index, text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 from app.config import settings
 
-DB_PATH = os.path.join(os.path.dirname(settings.DATA_PATH), "v7_sustainability.db")
+# --- SQLAlchemy Setup ---
+engine = create_engine(
+    settings.DATABASE_URL, 
+    pool_size=20, 
+    max_overflow=10,
+    pool_pre_ping=True
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+# --- Models ---
+
+class Ledger(Base):
+    __tablename__ = "ledger"
+
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    product_id = Column(String, index=True)
+    sku_name = Column(String, index=True)
+    category = Column(String, index=True)
+    region = Column(String, index=True)
+    vendor = Column(String, index=True)
+    total_lifecycle_carbon_footprint = Column(Float)
+    hash = Column(String, unique=True)
+    prev_hash = Column(String)
+    is_anomaly = Column(Integer, default=0)
+
+    # Time-series Optimization: Composite Index for fast filtering
+    __table_args__ = (
+        Index('ix_ledger_timestamp_sku', "timestamp", "sku_name"),
+        Index('ix_ledger_vendor_category', "vendor", "category"),
+    )
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    role = Column(String, default="viewer") # viewer, editor, admin
+    is_active = Column(Boolean, default=True)
+
+class AuditLog(Base):
+    __tablename__ = "audit_log"
+
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    batch_id = Column(String, unique=True, index=True)
+    record_count = Column(Integer)
+    merkle_root = Column(String)
+    signature = Column(String) # Simulated digital signature
+    operator = Column(String)  # The user who performed ingestion
+
+# --- Dependency ---
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# --- Helpers ---
+
+def get_latest_hash(db: SessionLocal):
+    row = db.query(Ledger).order_by(Ledger.id.desc()).first()
+    return row.hash if row else "0" * 64
+
+# --- Initialization & Seeding ---
 
 def init_db():
-    """ Initializes the local SQLite persistence layer.
+    Base.metadata.create_all(bind=engine)
     
-    Creates the 'ledger' table if it does not exist and seeds it with 
-    historical data from the Absolute Reality CSV registry if empty.
-    """
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    # Core Sustainability Ledger
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS ledger (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT,
-            product_id TEXT,
-            sku_name TEXT,
-            category TEXT,
-            region TEXT,
-            vendor TEXT,
-            total_lifecycle_carbon_footprint REAL,
-            hash TEXT,
-            prev_hash TEXT,
-            is_anomaly INTEGER DEFAULT 0
-        )
-    """)
-    
-    # Sync from CSV if table is empty (Seed Data)
-    cursor.execute("SELECT count(*) FROM ledger")
-    if cursor.fetchone()[0] == 0 and os.path.exists(settings.DATA_PATH):
-        df = pd.read_csv(settings.DATA_PATH)
-        # Absolute Reality: Direct Column Mapping
-        carbon_col = 'total_lifecycle_carbon_footprint'
-        
-        df_seed = df[['Timestamp', 'Product_ID', 'SKU_Name', 'Category', 'Region', 'Vendor', carbon_col, 'Hash', 'Prev_Hash']]
-        df_seed.columns = ['timestamp', 'product_id', 'sku_name', 'category', 'region', 'vendor', 'total_lifecycle_carbon_footprint', 'hash', 'prev_hash']
-        df_seed.to_sql('ledger', conn, if_exists='append', index=False)
-        print(f"📦 Database seeded with {len(df_seed)} records from CSV.")
-    
-    conn.commit()
-    conn.close()
+    # Seeding (Enterprise approach: only if empty)
+    db = SessionLocal()
+    try:
+        if db.query(Ledger).count() == 0 and os.path.exists(settings.DATA_PATH):
+            df = pd.read_csv(settings.DATA_PATH)
+            carbon_col = 'total_lifecycle_carbon_footprint'
+            
+            # Absolute Reality: Direct Column Mapping
+            records = []
+            for _, row in df.iterrows():
+                # Convert string timestamp to datetime if necessary
+                ts = row['Timestamp']
+                if isinstance(ts, str):
+                    try:
+                        ts = datetime.fromisoformat(ts.replace('Z', '+00:00'))
+                    except ValueError:
+                        ts = datetime.utcnow() # Fallback
 
-def get_db_connection():
-    """ Establishes a connection to the SQLite sustainability database.
-    
-    Returns:
-        sqlite3.Connection: A connection object with Row factory enabled for dictionary-like access.
-    """
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def add_ledger_record(record_dict):
-    """ Persists a new sustainability record to the immutable ledger.
-    
-    Args:
-        record_dict (dict): A dictionary containing SKU telemetry, metrics, 
-                           and SHA-256 hash-chain metadata.
-    """
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO ledger (timestamp, product_id, sku_name, category, region, vendor, total_lifecycle_carbon_footprint, hash, prev_hash, is_anomaly)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        record_dict['timestamp'], record_dict['product_id'], record_dict['sku_name'],
-        record_dict['category'], record_dict['region'], record_dict['vendor'],
-        record_dict['total_lifecycle_carbon_footprint'], 
-        record_dict['hash'], record_dict['prev_hash'],
-        record_dict.get('is_anomaly', 0)
-    ))
-    conn.commit()
-    conn.close()
-
-def get_latest_hash():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT hash FROM ledger ORDER BY id DESC LIMIT 1")
-    row = cursor.fetchone()
-    conn.close()
-    return row['hash'] if row else "0" * 64
+                records.append(Ledger(
+                    timestamp=ts,
+                    product_id=str(row['Product_ID']),
+                    sku_name=str(row['SKU_Name']),
+                    category=str(row['Category']),
+                    region=str(row['Region']),
+                    vendor=str(row['Vendor']),
+                    total_lifecycle_carbon_footprint=float(row[carbon_col]),
+                    hash=str(row['Hash']),
+                    prev_hash=str(row['Prev_Hash']),
+                    is_anomaly=0
+                ))
+            
+            db.bulk_save_objects(records)
+            db.commit()
+            print(f"📦 Database seeded with {len(records)} records from CSV.")
+    finally:
+        db.close()
 
 if __name__ == "__main__":
     init_db()
