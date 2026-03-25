@@ -1,26 +1,34 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict # type: ignore
+from typing import Optional
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+class Settings(BaseSettings):
+    # Core Infrastructure
+    PROJECT_NAME: str = "EcoTrack Enterprise"
+    VERSION: str = "8.2.0-STABLE"
+    ENV: str = os.getenv("ENV", "development")
+    
+    # Database (Full PostgreSQL Support)
+    # Default to production-grade DB if ENV=production
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./ecotrack_enterprise.db")
+    
+    # Security (Hardened)
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "industrial_grade_secret_2026")
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    
+    # ML & Telemetry Nodes
+    MODEL_PATH: str = "app/ml/business_intel_v8.joblib"
+    SECURITY_PATH: str = "app/ml/security_shield_v8.joblib"
+    
+    # Observability
+    LOG_LEVEL: str = "INFO"
+    PROMETHEUS_METRICS: bool = True
 
-class Settings:
-    # Absolute Reality: File-relative URI resolution
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    # 1. Path to the CSV Data
-    DATA_PATH = os.path.join(BASE_DIR, "data/dpp_data.csv")
-
-    # 2. Path to the Trained Models (MATCHING YOUR TRAINING LOGS)
-    MODEL_PATH = os.path.join(BASE_DIR, "data/model.pkl")
-    SECURITY_PATH = os.path.join(BASE_DIR, "data/security_model.pkl")
-
-    # 3. Database Configuration (SQLite default, PostgreSQL for Enterprise)
-    SQLITE_DB_PATH = os.path.join(os.path.dirname(DATA_PATH), "v7_sustainability.db")
-    DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{SQLITE_DB_PATH}")
-
-    # 4. Security Configuration
-    SECRET_KEY = os.environ.get("SECRET_KEY", "SUPER_SECRET_KEY_FOR_DEV_ONLY_12345")
-    ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 60
+    model_config = SettingsConfigDict(
+        env_file=f".env.{os.getenv('ENV', 'development')}",
+        env_file_encoding='utf-8',
+        case_sensitive=True
+    )
 
 settings = Settings()

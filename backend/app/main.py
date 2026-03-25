@@ -34,9 +34,12 @@ from app.ml_ops import DataValidator, DriftDetector, RetrainingManager # type: i
 from app.ingestion_engine import ingestion_engine # type: ignore
 import mlflow  # type: ignore
 
-# 1. Setup Logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("EcoTrack-Main")
+from app.logging_config import setup_logging # type: ignore
+from app.middleware import setup_middlewares # type: ignore
+
+# 1. Setup Logging (Structured JSON)
+setup_logging()
+logger = logging.getLogger("EcoTrack-Nexus")
 
 # 2. Global Variables
 ai_models = {
@@ -44,9 +47,10 @@ ai_models = {
     "security": None     
 }
 
+# 3. Lifespan & App Setup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("🚀 STARTUP: Initializing Supreme Knowledge Base...")
+    logger.info("🚀 STARTUP: Synchronizing Industrial Nexus...")
     # Initialize Persistent DB
     init_db()
     
@@ -76,12 +80,14 @@ async def lifespan(app: FastAPI):
     ai_models.clear()
     logger.info("📡 Async Ingestion Worker Shutdown.")
 
-# 4. API Definition
 app = FastAPI(
     title="EcoTrack Enterprise Absolute Reality API",
     version=settings.VERSION,
     lifespan=lifespan
 )
+
+# Setup Guardrails (Rate Limiting & Error Tracking)
+setup_middlewares(app)
 
 # Include Routers
 app.include_router(auth.router, prefix="/api/v1")

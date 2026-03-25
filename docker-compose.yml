@@ -13,8 +13,14 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATA_PATH=/app/data/data_dpp.csv
-      - MODEL_PATH=/app/data/model.pkl
+      - ENV=production
+      - DATABASE_URL=postgresql://user:password@db:5432/ecotrack
+      - SECRET_KEY=ROTATE_THIS_IN_PROD
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: always
 
   frontend:
