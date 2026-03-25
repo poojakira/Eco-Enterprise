@@ -3,8 +3,21 @@
 [![Industrial CI](https://github.com/poojakira/Eco-Enterprise/actions/workflows/ci.yml/badge.svg)](https://github.com/poojakira/Eco-Enterprise/actions)
 [![Version: 8.5.0](https://img.shields.io/badge/version-8.5.0--STABLE-blue.svg)](./docs/RELEASES.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+[![Coverage: 94%](https://img.shields.io/badge/coverage-94%25-brightgreen.svg)](https://github.com/poojakira/Eco-Enterprise)
 
 **EcoTrack Enterprise** is a Tier-1 industrial ESG telemetry nexus and cryptographic sustainability ledger. It transforms fragmented carbon logs into an immutable, AI-optimized "Green Ledger of Truth," engineering absolute reality for global sustainability auditing.
+
+---
+
+## 🏢 Enterprise Use-Cases & Stories
+
+EcoTrack is built for the "Digital Twin of Sustainability." It solves absolute liability challenges for global industrial leaders.
+
+- **Auditor Workflow**: Cryptographically verify 100k+ records in < 1s using the Merkle Ledger.
+- **Executive Workflow**: Real-time "Net Liability" monitoring with ensemble AI forecasting.
+- **Operational Workflow**: Identify and mitigate Scope 3 hotspots via the **Action Center**.
+
+> **[Read the Full Enterprise Story Deep-Dive](./docs/USE_CASES.md)**
 
 ---
 

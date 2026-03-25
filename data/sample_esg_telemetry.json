@@ -1,0 +1,26 @@
+[
+  {
+    "sku_name": "Nexus-X Industrial Processor",
+    "product_id": "PRD-001",
+    "category": "Electronics",
+    "vendor": "Silicon-Alpha",
+    "region": "US-East",
+    "raw_material_energy": 120.5,
+    "manufacturing_energy": 85.2,
+    "transport_distance_km": 1200.0,
+    "usage_duration_hours": 5000,
+    "carbon_footprint": 45.2
+  },
+  {
+    "sku_name": "Eco-Logic Cooling Unit",
+    "product_id": "PRD-002",
+    "category": "HVAC",
+    "vendor": "Thermal-Nexus",
+    "region": "EU-West",
+    "raw_material_energy": 240.0,
+    "manufacturing_energy": 110.5,
+    "transport_distance_km": 800.0,
+    "usage_duration_hours": 12000,
+    "carbon_footprint": 92.1
+  }
+]
