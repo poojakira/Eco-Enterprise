@@ -1,0 +1,13 @@
+name: Performance/Scale Issue
+description: Report a latency, throughput, or drift anomaly.
+body:
+  - type: textarea
+    attributes:
+      label: Performance Metrics
+      placeholder: E.g., Ingestion latency exceeded 100ms on 10k batch.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Environment
+      placeholder: development, staging, or production

@@ -1,0 +1,9 @@
+name: Feature Evolution Request
+description: Propose a new industrial capability for the Nexus.
+body:
+  - type: textarea
+    attributes:
+      label: Proposed Evolution
+      placeholder: Describe the desired capability.
+    validations:
+      required: true
