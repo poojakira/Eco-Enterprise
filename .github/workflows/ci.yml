@@ -10,9 +10,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
     - name: Set up Python 3.12
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.12"
     - name: Install dependencies
@@ -21,22 +21,23 @@ jobs:
         pip install -r backend/requirements.txt
         pip install pytest pytest-asyncio httpx
     - name: Run Pytest
-      run: |
-        export DATABASE_URL="sqlite:///./test.db"
-        export SECRET_KEY="ci_test_secret"
-        pytest backend/tests
+      working-directory: backend
+      env:
+        DATABASE_URL: "sqlite:///./test.db"
+        SECRET_KEY: "ci_test_secret"
+      run: pytest tests
 
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.12"
     - name: Install linting tools
       run: pip install black flake8
     - name: Run Black Check
-      run: black --check backend app
+      run: black --check backend
     - name: Run Flake8
       run: flake8 backend/app --count --select=E9,F63,F7,F82 --show-source --statistics
