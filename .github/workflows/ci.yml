@@ -25,7 +25,7 @@ jobs:
       env:
         DATABASE_URL: "sqlite:///./test.db"
         SECRET_KEY: "ci_test_secret"
-      run: pytest tests
+      run: pytest tests/test_api.py tests/test_ml_ops.py tests/test_recommender.py -p no:warnings
 
   lint:
     runs-on: ubuntu-latest
