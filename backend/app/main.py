@@ -104,7 +104,7 @@ def health_check():
 
 @app.get("/api/v1/metrics", response_model=SustainabilityMetrics)
 @limiter.limit("20/minute")
-def get_enterprise_metrics(
+def get_enterprise_metrics(     request: Request,
     limit: int = 200, 
     offset: int = 0, 
     db: Session = Depends(get_db),
@@ -141,7 +141,7 @@ def get_enterprise_metrics(
 
 @app.post("/api/v1/data/ingest", status_code=202)
 @limiter.limit("10/minute")
-async def ingest_data(
+async def ingest_data(     request: Request,
     data: list[CarbonDataInput], 
     db: Session = Depends(get_db), # Still used for sync overhead/checks if needed
     current_user = Depends(RoleChecker(["admin", "editor"]))
