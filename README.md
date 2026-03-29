@@ -25,6 +25,18 @@ EcoTrack Enterprise is an ESG telemetry nexus and cryptographic sustainability l
 
 ---
 
+## Project Background
+
+Eco-Enterprise originated as a set of experiments around ESG reporting, carbon intensity modeling, and supply-chain analytics.  
+In 2026, I organized those prototypes into a cohesive platform that:
+
+- Tracks ESG and emissions KPIs across business units
+- Uses ML models to suggest carbon optimization opportunities
+- Exposes APIs and dashboards for sustainability and operations teams
+
+It is meant as an enterprise-style playground for sustainability analytics, not as a polished commercial SaaS.
+
+---
 ## 2. Architecture
 
 The Nexus architecture uses a producer-consumer pattern and Merkle-tree anchoring for high-frequency telemetry (10^6 records/month).
