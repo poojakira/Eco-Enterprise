@@ -40,7 +40,7 @@ class DriftDetector:
     @staticmethod
     def detect_distribution_drift(s1: pd.Series, s2: pd.Series) -> bool:
         """
-        Detects distribution drift between two Series using mean-shift comparison.
+        Detects distribution drift between two Series using mean-shift.
         Returns True if significant drift is detected, False otherwise.
         """
         mean1 = s1.mean()
@@ -52,7 +52,7 @@ class DriftDetector:
                 f"DRIFT DETECTED: mean shift {mean1:.2f} -> {mean2:.2f} "
                 f"(relative: {relative_shift:.2f})"
             )
-                return bool(drift)
+        return bool(drift)
 
     def check_drift(self, current_data: pd.DataFrame) -> bool:
         """
@@ -64,14 +64,11 @@ class DriftDetector:
             self.reference_data = current_data
             return False
 
-        # Simple Mean-Shift Detection
         drift_detected = False
         numeric_cols = current_data.select_dtypes(include=[np.number]).columns
         for col in numeric_cols:
             ref_mean = self.reference_data[col].mean()
             cur_mean = current_data[col].mean()
-
-            # If mean shifts by more than 20%, flag drift
             if abs(cur_mean - ref_mean) / (ref_mean + 1e-9) > 0.2:
                 logger.warning(
                     f"DRIFT DETECTED in feature: {col} "
