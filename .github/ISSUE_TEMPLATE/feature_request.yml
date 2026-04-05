@@ -1,9 +1,32 @@
-name: Feature Evolution Request
-description: Propose a new industrial capability for the Nexus.
+name: "💡 Feature Request"
+description: "Suggest a new feature for the EcoTrack prototype."
+labels: ["enhancement"]
 body:
-  - type: textarea
+  - type: markdown
     attributes:
-      label: Proposed Evolution
-      placeholder: Describe the desired capability.
+      value: |
+        ### Share your ideas! 🚀
+        We are always looking for ways to improve the ESG telemetry nexus.
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: "Describe the feature"
+      description: "What would you like to see added?"
+      placeholder: "Add support for AWS S3 as a backup target for the Merkle Ledger."
     validations:
       required: true
+  - type: textarea
+    id: problem-solution
+    attributes:
+      label: "What problem does this solve?"
+      description: "Why is this feature needed?"
+      placeholder: "Currently, backups are only local, which increases data loss risk."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternatives"
+      description: "Any alternative solutions you've considered?"
+    validations:
+      required: false
