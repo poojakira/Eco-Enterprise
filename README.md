@@ -1,4 +1,4 @@
-# ESG-Carbon-Telemetry (EcoTrack)
+# ESG-Carbon-Telemetry 
 
 [![CI](https://github.com/poojakira/ESG-Carbon-Telemetry/actions/workflows/ci.yml/badge.svg)](https://github.com/poojakira/ESG-Carbon-Telemetry/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
