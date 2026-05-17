@@ -3,6 +3,9 @@ from typing import Optional, Dict, Any
 import os
 import yaml
 
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_BACKEND_DIR = os.path.dirname(_THIS_DIR)
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore", env_prefix="", case_sensitive=False)
@@ -14,7 +17,7 @@ class Settings(BaseSettings):
 
     # DATABASE & SECURITY
     DATABASE_URL: str = "sqlite:///./ecotrack_enterprise.db"
-    SECRET_KEY: str = os.environ["SECRET_KEY"]
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-insecure-key-change-in-production")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
@@ -30,17 +33,20 @@ class Settings(BaseSettings):
     def load_from_yaml(cls) -> "Settings":
         """ Hybrid YAML + ENV loader for industrial deployments. """
         env = os.getenv("ENV", "development")
-        config_dir = "config"
+        config_dir = os.path.join(_BACKEND_DIR, "config")
 
         # Load Base
-        with open(os.path.join(config_dir, "base.yaml"), "r") as f:
-            base_cfg = yaml.safe_load(f)
+        base_yaml = os.path.join(config_dir, "base.yaml")
+        base_cfg: Dict[str, Any] = {}
+        if os.path.exists(base_yaml):
+            with open(base_yaml, "r") as f:
+                base_cfg = yaml.safe_load(f) or {}
 
         # Load Env Overrides
         env_file = os.path.join(config_dir, f"{env}.yaml")
         if os.path.exists(env_file):
             with open(env_file, "r") as f:
-                env_cfg = yaml.safe_load(f)
+                env_cfg = yaml.safe_load(f) or {}
             base_cfg.update(env_cfg)
 
         # Merge into Settings (ENV vars always win)
